@@ -65,3 +65,7 @@ class Notiflo
       .find('0nSn14cA').lists.find { |list| list.name == 'L&L Schedule' }
   end
 end
+
+def lambda_handler(event:, context:)
+  Notiflo.send_lunch_and_learn_notification
+end
