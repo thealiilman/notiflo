@@ -25,30 +25,48 @@ class Notiflo
   private
 
   def body
-    {
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: "Our next *L&L* session is on the #{card.name}!\nThese are our speaker(s)."
+    if card
+      {
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: "Our next *L&L* session is on the #{card.name}!\nThese are our speaker(s)."
+            }
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: speakers
+            }
           }
-        },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: card.members.map(&:full_name).join("\n")
+        ]
+      }.to_json
+    else
+      {
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: "We don't have any upcoming L&Ls."
+            }
           }
-        }
-      ]
-    }.to_json
+        ]
+      }.to_json
+    end
   end
 
   def headers
     {
       'Content-Type' => 'application/json'
     }
+  end
+
+  def speakers
+    card.members.any? ? card.members.map(&:full_name).join("\n") : '_TBA_'
   end
 
   def card
