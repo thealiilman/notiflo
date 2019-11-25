@@ -1,4 +1,3 @@
-require 'json'
 require 'trello'
 require 'httparty'
 
@@ -25,7 +24,43 @@ class Notiflo
   private
 
   def body
-    if card
+    if card && this_week?
+      {
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: 'Our next *L&L* session is on this coming Friday!'
+            }
+          },
+          {
+            type: 'image',
+            title: {
+              type: 'plain_text',
+              text: 'the-office-its-happening',
+              emoji: true
+            },
+            image_url: 'https://media0.giphy.com/media/14fnBD3MQslIGc/giphy.gif?cid=790b7611b51e6d4ea51f81296500cd041dedd08eb975fe89&rid=giphy.gif',
+            alt_text: 'the-office-its-happening'
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: 'These are our speaker(s).'
+            }
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: speakers
+            }
+          }
+        ]
+      }.to_json
+    elsif card && !this_week?
       {
         blocks: [
           {
@@ -65,13 +100,19 @@ class Notiflo
     }
   end
 
+  def this_week?
+    day, month = card.name.split('/').map(&:to_i)
+    lunch_and_learn_date = Date.new(Date.current.year, month, day)
+
+    (lunch_and_learn_date - Date.current).to_i <= 7
+  end
+
   def speakers
     card.members.any? ? card.members.map(&:full_name).join("\n") : '_TBA_'
   end
 
   def card
     @card ||= list.cards.find do |card|
-      year = Date.current.year
       day, month = card.name.split('/').map(&:to_i)
       lunch_and_learn_date = Date.new(Date.current.year, month, day)
 
