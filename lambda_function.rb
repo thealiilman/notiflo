@@ -31,7 +31,7 @@ class Notiflo
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: 'Our next *L&L* session is on this coming Friday!'
+              text: 'Our next *L&L* session is happening this coming Friday!'
             }
           },
           {
@@ -108,7 +108,15 @@ class Notiflo
   end
 
   def speakers
-    card.members.any? ? card.members.map(&:full_name).join("\n") : '_TBA_'
+    checklist = card.checklists.find { |cl| cl.name == 'Speakers' }
+
+    if card.members.any?
+      card.members.map(&:full_name).join("\n")
+    elsif checklist
+      checklist.check_items.map { |item| item['name'] }.join("\n")
+    else
+      '_TBA_'
+    end
   end
 
   def card
