@@ -48,7 +48,7 @@ class Notiflo
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: 'These are our speaker(s).'
+              text: agenda
             }
           },
           {
@@ -67,7 +67,7 @@ class Notiflo
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: "Our next *L&L* session is on the #{card.name}!\nThese are our speaker(s)."
+              text: "Our next *L&L* session is on the #{card.name}!\n#{agenda}"
             }
           },
           {
@@ -100,29 +100,42 @@ class Notiflo
     }
   end
 
+  def agenda
+    if label != 'Project Demos'
+      'These are our speakers.'
+    else
+      'We will be having a demo of the following projects.'
+    end
+  end
+
   def this_week?
-    day, month = card.name.split('/').map(&:to_i)
-    lunch_and_learn_date = Date.new(Date.current.year, month, day)
+    year, month, day = card.name.split('-').map(&:to_i)
+    lunch_and_learn_date = Date.new(year, month, day)
 
     (lunch_and_learn_date - Date.current).to_i <= 7
   end
 
   def speakers
-    checklist = card.checklists.find { |cl| cl.name == 'Speakers' }
-
     if card.members.any?
       card.members.map(&:full_name).join("\n")
-    elsif checklist
+    elsif label == 'Project Demos'
+      checklist = card.checklists.find { |cl| cl.name == 'Projects' }
+      checklist.check_items.map { |cl| cl['name'].split('-').first }.join("\n")
+    elsif (checklist = card.checklists.find { |cl| cl.name == 'Speakers' })
       checklist.check_items.map { |item| item['name'] }.join("\n")
     else
       '_TBA_'
     end
   end
 
+  def label
+    card.labels.first&.name
+  end
+
   def card
-    @card ||= list.cards.find do |card|
-      day, month = card.name.split('/').map(&:to_i)
-      lunch_and_learn_date = Date.new(Date.current.year, month, day)
+    @card ||= list.cards.last(5).find do |card|
+      year, month, day = card.name.split('-').map(&:to_i)
+      lunch_and_learn_date = Date.new(year, month, day)
 
       Date.current < lunch_and_learn_date
     end
