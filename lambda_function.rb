@@ -133,7 +133,7 @@ class Notiflo
   end
 
   def card
-    @card ||= list.cards.last(5).find do |card|
+    @card ||= list.cards.find do |card|
       year, month, day = card.name.split('-').map(&:to_i)
       lunch_and_learn_date = Date.new(year, month, day)
 
